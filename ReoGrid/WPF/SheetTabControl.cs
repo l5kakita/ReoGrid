@@ -420,8 +420,12 @@ namespace unvell.ReoGrid.WPF
 			SheetTabItem item = this.canvas.Children[index] as SheetTabItem;
 			if (item != null)
 			{
-				item.ChangeTitle(title);
-				this.canvas.ColumnDefinitions[index].Width = new GridLength(item.Width+1);
+				var oldWidth = item.Width;
+				if (item.ChangeTitle(title))
+				{
+					this.canvas.Width += item.Width - oldWidth;
+					this.canvas.ColumnDefinitions[index].Width = new GridLength(item.Width + 1);
+				}
 
 				item.BackColor = backColor;
 				item.TextColor = textColor;
@@ -564,8 +568,16 @@ namespace unvell.ReoGrid.WPF
 			this.ChangeTitle(title);
 		}
 
-		public void ChangeTitle(string title)
+		/// <summary>
+		/// タブのタイトルを変更する.変更がなかった場合はfalseを返す
+		/// </summary>
+		/// <param name="title"></param>
+		/// <returns></returns>
+		public bool ChangeTitle(string title)
 		{
+			// 変更がなければ何もしない
+			if (this.Title == title && !double.IsNaN(this.Width)) { return false; }
+
 			var label = new TextBlock
 			{
 				Text = title,
@@ -578,10 +590,13 @@ namespace unvell.ReoGrid.WPF
 
 			this.Child = label;
 			this.Width = label.DesiredSize.Width + 9;
+
+			return true;
 		}
 
 		private GuidelineSet gls = new GuidelineSet();
 
+		public string Title { get; set; }
 		public Color BackColor { get; set; }
 		public Color TextColor { get; set; }
 
