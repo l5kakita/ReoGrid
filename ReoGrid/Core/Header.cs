@@ -222,8 +222,19 @@ namespace unvell.ReoGrid
 			SetColumnsWidth(col, count, c => width);
 		}
 
-		internal void SetColumnsWidth(int col, int count, Func<int, int> widthGetter,
-			bool processOutlines = true, bool updateMaxColumnHeader = true)
+        /// <summary>
+        /// Set width of specified columns
+        /// </summary>
+        /// <param name="col">Start column index to set</param>
+        /// <param name="count">Number of columns to set</param>
+        /// <param name="width">Width value of column</param>
+        public void SetColumnsWidth(int col, int count, ushort[] width)
+        {
+            SetColumnsWidth(col, count, c => width[c - col], updateBoundIfChanged: false);
+        }
+
+        internal void SetColumnsWidth(int col, int count, Func<int, int> widthGetter,
+			bool processOutlines = true, bool updateMaxColumnHeader = true, bool updateBoundIfChanged = true)
 		{
 #if DEBUG
 			Stopwatch watch = Stopwatch.StartNew();
@@ -356,7 +367,8 @@ namespace unvell.ReoGrid
 							if (cell.InternalCol < applyEndCol && cell.Colspan == 1 && cell.Rowspan == 1)
 							{
 								cell.Width = width + 1;
-								UpdateCellTextBounds(cell);
+                                if(updateBoundIfChanged)
+    								UpdateCellTextBounds(cell);
 							}
 
 							cell.UpdateContentBounds();
@@ -913,6 +925,89 @@ namespace unvell.ReoGrid
 				return false;
 			}
 		}
+
+        /// <summary>
+        /// 指定位置のセルだけピックアップして幅計算して一回で幅設定する。
+        /// １行１セル設定を基本とする（１行で複数セル指定してどちらか大きい方とかはできるがそれだけ計算が遅くなる）
+        /// </summary>
+        /// <param name="_cells"></param>
+        /// <returns></returns>
+        public bool AutoFitColumnWidth(CellPosition[] _cells)
+        {
+            int colstart = this.MaxContentCol + 1, colend = 0;
+
+            // セルの指定範囲を調べる
+            foreach (var c in _cells)
+            {
+                colstart = Math.Min(colstart, c.Col);
+                colend = Math.Max(colend, c.Col);
+            }
+            int cols = colend - colstart + 1;
+
+            ushort[] targets = new ushort[cols];
+            for(int i = 0; i < cols; ++i)
+            {
+                targets[i] = (ushort)this.cells[0, colstart + i].Width;
+            }
+
+            bool isValid = false;
+            foreach (var c in _cells)
+            {
+                RGFloat maxWidth = 0;
+                Cell cell = this.cells[c.Row, c.Col];
+
+                if (cell != null
+                    && cell.Colspan == 1)
+                {
+                    if (cell.FontDirty)
+                    {
+                        this.UpdateCellFont(cell);
+                    }
+
+#if DRAWING
+                    var rt = cell.Data as Drawing.RichText;
+
+                    if (rt != null)
+                    {
+                        var rtWidth = rt.TextSize.Width;
+
+                        if (maxWidth < rtWidth)
+                        {
+                            maxWidth = rtWidth;
+                        }
+                    }
+                    else
+                    {
+#endif // DRAWING
+
+                        RGFloat textWidth = cell.TextBounds.Width / this.renderScaleFactor;
+
+                        if (maxWidth < textWidth)
+                        {
+                            maxWidth = textWidth;
+                        }
+
+#if DRAWING
+                    }
+#endif // DRAWING
+                }
+
+                if (maxWidth > 0)
+                {
+                    if (maxWidth < 0) maxWidth = 0;
+                    if (maxWidth > ushort.MaxValue - 2) maxWidth = ushort.MaxValue - 2;
+
+                    ushort targetWidth = (ushort)(maxWidth + 2);
+                    targets[c.Col - colstart] = targetWidth;
+                    isValid = true;
+                }
+            }
+
+            if (!isValid) { return false; }
+
+            this.SetColumnsWidth(colstart, cols, targets);
+            return true;
+        }
 
 		#endregion // Width & Height
 
