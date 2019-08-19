@@ -840,14 +840,14 @@ namespace unvell.ReoGrid
 		/// be done by performing action, that will be able to revoke this behavior.</param>
 		/// <returns>Return true if operation actually done; Return false if nothing 
 		/// need to do (cells are default width).</returns>
-		public bool AutoFitColumnWidth(int col, bool byAction = false)
+		public bool AutoFitColumnWidth(int col, bool byAction = false, RGFloat _minWidth = 0)
 		{
 			if (col < 0 || col > this.cols.Count - 1)
 			{
 				throw new ArgumentOutOfRangeException("col");
 			}
 
-			RGFloat maxWidth = 0;
+			RGFloat maxWidth = _minWidth > 0 ? _minWidth : 0;
 
 			for (int r = 0; r <= this.MaxContentRow; r++)
 			{
