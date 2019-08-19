@@ -962,7 +962,7 @@ namespace unvell.ReoGrid
 			{
 				default:
 				case ReoGridRenderHorAlign.Left:
-					x = cellBounds.Left * scaleFactor + 2 + (indent * this.indentSize);
+					x = cellBounds.Left * scaleFactor + 2 + (indent * this.indentSize) + cell.InnerStyle.Padding.Left;
 					break;
 
 				case ReoGridRenderHorAlign.Center:
@@ -970,7 +970,7 @@ namespace unvell.ReoGrid
 					break;
 
 				case ReoGridRenderHorAlign.Right:
-					x = cellBounds.Right * scaleFactor - 3 - size.Width - (indent * this.indentSize);
+					x = cellBounds.Right * scaleFactor - 3 - size.Width - (indent * this.indentSize) - cell.InnerStyle.Padding.Right;
 					break;
 			}
 

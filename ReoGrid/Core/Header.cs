@@ -949,7 +949,8 @@ namespace unvell.ReoGrid
             ushort[] targets = new ushort[cols];
             for(int i = 0; i < cols; ++i)
             {
-                targets[i] = (ushort)this.cells[0, colstart + i].Width;
+				var cell = this.cells[0, colstart + i];
+				targets[i] = cell != null ? (ushort)cell.Width : (ushort)_minWidth;
             }
 
             bool isValid = false;
@@ -971,7 +972,7 @@ namespace unvell.ReoGrid
 
                     if (rt != null)
                     {
-                        var rtWidth = rt.TextSize.Width;
+						var rtWidth = rt.TextSize.Width + cell.InnerStyle.Padding.Left + cell.InnerStyle.Padding.Right;
 
                         if (maxWidth < rtWidth)
                         {
@@ -982,7 +983,7 @@ namespace unvell.ReoGrid
                     {
 #endif // DRAWING
 
-                        RGFloat textWidth = cell.TextBounds.Width / this.renderScaleFactor;
+                        RGFloat textWidth = cell.TextBounds.Width / this.renderScaleFactor + cell.InnerStyle.Padding.Left + cell.InnerStyle.Padding.Right;
 
                         if (maxWidth < textWidth)
                         {
