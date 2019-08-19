@@ -850,6 +850,7 @@ namespace unvell.ReoGrid
 		/// <param name="col">Zero-based number of column to be adjusted</param>
 		/// <param name="byAction">Specify that whether or not this operation should 
 		/// be done by performing action, that will be able to revoke this behavior.</param>
+		/// <param name="_minWidth"></param>
 		/// <returns>Return true if operation actually done; Return false if nothing 
 		/// need to do (cells are default width).</returns>
 		public bool AutoFitColumnWidth(int col, bool byAction = false, RGFloat _minWidth = 0)
@@ -926,13 +927,14 @@ namespace unvell.ReoGrid
 			}
 		}
 
-        /// <summary>
-        /// 指定位置のセルだけピックアップして幅計算して一回で幅設定する。
-        /// １行１セル設定を基本とする（１行で複数セル指定してどちらか大きい方とかはできるがそれだけ計算が遅くなる）
-        /// </summary>
-        /// <param name="_cells"></param>
-        /// <returns></returns>
-        public bool AutoFitColumnWidth(CellPosition[] _cells)
+		/// <summary>
+		/// 指定位置のセルだけピックアップして幅計算して一回で幅設定する。
+		/// １行１セル設定を基本とする（１行で複数セル指定してどちらか大きい方とかはできるがそれだけ計算が遅くなる）
+		/// </summary>
+		/// <param name="_cells"></param>
+		/// <param name="_minWidth"></param>
+		/// <returns></returns>
+		public bool AutoFitColumnWidth(CellPosition[] _cells, RGFloat _minWidth = 0)
         {
             int colstart = this.MaxContentCol + 1, colend = 0;
 
@@ -953,8 +955,8 @@ namespace unvell.ReoGrid
             bool isValid = false;
             foreach (var c in _cells)
             {
-                RGFloat maxWidth = 0;
-                Cell cell = this.cells[c.Row, c.Col];
+				RGFloat maxWidth = _minWidth > 0 ? _minWidth : 0;
+				Cell cell = this.cells[c.Row, c.Col];
 
                 if (cell != null
                     && cell.Colspan == 1)
