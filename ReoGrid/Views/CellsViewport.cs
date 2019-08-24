@@ -107,7 +107,8 @@ namespace unvell.ReoGrid.Views
 			#region Background-only Cells
 			var drawedCells = new System.Collections.Generic.List<Cell>(5);
 
-			for (int r = visibleRegion.startRow; r < toRow; r++)
+#if false
+            for (int r = visibleRegion.startRow; r < toRow; r++)
 			{
 				RowHeader rowHead = sheet.rows[r];
 				if (rowHead.InnerHeight <= 0) continue;
@@ -171,6 +172,7 @@ namespace unvell.ReoGrid.Views
 						c++;
 				}
 			}
+#endif
 
 			#endregion // Background-only Cells
 
@@ -186,12 +188,17 @@ namespace unvell.ReoGrid.Views
 				for (int c = visibleRegion.startCol; c < toCol && c <= sheet.cells.MaxCol;)
 				{
 					Cell cell = sheet.cells[r, c];
+                    bool hasContent = !string.IsNullOrEmpty(cell?.DisplayText) || cell?.body != null;
 
-					// draw cell onyl when cell's instance existing
-					// and bounds of cell must be > 1 (minimum is 1, including one pixel border)
-					if (cell != null && cell.Width > 1 && cell.Height > 1)
+                    // draw cell onyl when cell's instance existing
+                    // and bounds of cell must be > 1 (minimum is 1, including one pixel border)
+                    if (!hasContent)
+                    {
+                        DrawCellBackground(dc, r, c, cell);
+                        c++;
+                    }
+                    else if (cell.Width > 1 && cell.Height > 1)
 					{
-						bool hasContent = !string.IsNullOrEmpty(cell.DisplayText) || cell.body != null;
 
 						// single cell
 						if (cell.Rowspan == 1 && cell.Colspan == 1 && hasContent)
